@@ -54,14 +54,15 @@ public class BuildingButton : MonoBehaviour, IPointerDownHandler, IPointerUpHand
 
     public void OnPointerUp(PointerEventData eventData)
     {
-        //If We Arent Dragging
+        //If We Arent Dragging, We Release Mouse Button
         if(buildingPreviewInstance == null) { return; }
 
         Ray ray = mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
 
+        //Place Building At Hit Position
         if(Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, groundMask))
         {
-            //place building
+            player.CmdTryPlaceBuilding(building.GetId(), hit.point);
         }
 
         Destroy(buildingPreviewInstance);

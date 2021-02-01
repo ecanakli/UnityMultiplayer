@@ -5,6 +5,8 @@ using UnityEngine;
 
 public class RTSPlayer : NetworkBehaviour
 {
+    [SerializeField] private Building[] buildings = new Building[0];
+
     private List<Unit> myUnits = new List<Unit>();
     private List<Building> myBuildings = new List<Building>();
 
@@ -76,6 +78,34 @@ public class RTSPlayer : NetworkBehaviour
 
         //If It Is Remove Building From The List
         myBuildings.Remove(building);
+    }
+
+    [Command]
+    //Instantiate Client Requested Building
+    public void CmdTryPlaceBuilding(int buildingId, Vector3 point)
+    {
+        //To Protect If Invalid Id Comes
+        Building buildingToPlace = null;
+
+        //Looping Over All The Buildings
+        foreach(Building building in buildings)
+        {
+            //If The Id Of This Building Matches BuildinId Passed From Client
+            if(building.GetId() == buildingId)
+            {
+                buildingToPlace = building;
+                //Ones We Find Correct Building Stop Loop
+                break;
+            }
+        }
+        //Just In Case To Protect If Id Is Still Invalid Id
+        if (buildingToPlace == null) { return; }
+
+        //Spawn In On The Server
+        GameObject buildingInstance = Instantiate(buildingToPlace.gameObject, point, buildingToPlace.transform.rotation);
+
+        //Give Client Authority Over The Building And Spawn All Clients
+        NetworkServer.Spawn(buildingInstance, connectionToClient);
     }
 
     #endregion
