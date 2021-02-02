@@ -7,6 +7,8 @@ using UnityEngine;
 public class RTSPlayer : NetworkBehaviour
 {
     [SerializeField] private Building[] buildings = new Building[0];
+    [SerializeField] private LayerMask buildingBlockLayer = new LayerMask();
+    [SerializeField] private float buildingRangeLimit = 5f;
 
     //To Store Resources
     [SyncVar(hook = nameof(ClientHandleResourcesUpdated))]
@@ -40,6 +42,29 @@ public class RTSPlayer : NetworkBehaviour
     public void SetResources(int newResources)
     {
         resources = newResources;
+    }
+
+    //Checking While Placing Building Are Buildings Overlapping And Is Building In Range
+    public bool CanPlaceBuilding(BoxCollider buildingCollider, Vector3 point)
+    {
+        //Check If Overlapping While Placing Build
+        if (Physics.CheckBox(point + buildingCollider.center, buildingCollider.size / 2, Quaternion.identity, buildingBlockLayer))
+        {
+            //If Overlapping Then Return
+            return false;
+        }
+
+        //Checking Range While Placing Building
+
+        foreach (Building building in myBuildings)
+        {
+            if ((point - building.transform.position).sqrMagnitude <= buildingRangeLimit * buildingRangeLimit)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     #region Server
@@ -121,11 +146,24 @@ public class RTSPlayer : NetworkBehaviour
         //Just In Case To Protect If Id Is Still Invalid Id
         if (buildingToPlace == null) { return; }
 
+        //If We Don't Have Enough Resources To Build Then Return
+        if(resources < buildingToPlace.GetPrice()) { return; }
+
+        BoxCollider buildingCollider = buildingToPlace.GetComponent<BoxCollider>();
+
+        //Cheking Can We Place Building
+        if(!CanPlaceBuilding(buildingCollider, point)) { return; }
+
+        //If In Range Then Place Building
+
         //Spawn In On The Server
         GameObject buildingInstance = Instantiate(buildingToPlace.gameObject, point, buildingToPlace.transform.rotation);
 
         //Give Client Authority Over The Building And Spawn All Clients
         NetworkServer.Spawn(buildingInstance, connectionToClient);
+
+        //Setting New Resources Value
+        SetResources(resources - buildingToPlace.GetPrice());
     }
 
     #endregion
