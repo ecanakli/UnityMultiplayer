@@ -7,6 +7,7 @@ using UnityEngine.Events;
 
 public class Unit : NetworkBehaviour
 {
+    [SerializeField] private int resourceCost = 10;
     [SerializeField] private Health health = null;
     [SerializeField] private UnitMovement unitMovement = null;
     [SerializeField] private Targeter targeter = null;
@@ -23,6 +24,11 @@ public class Unit : NetworkBehaviour
     public static event Action<Unit> AuthorityOnUnitSpawned;
     //It is called when units despawned
     public static event Action<Unit> AuthorityOnUnitDeSpawned;
+
+    public int GetResourceCost()
+    {
+        return resourceCost;
+    }
 
     //For Reach Another Script Unit Movement But Refactor this
     //To Refactor this, Create Void Start and Referance To UnitMovement in Reaching Script Which is UnitCommandGiver = Not Define Function Here

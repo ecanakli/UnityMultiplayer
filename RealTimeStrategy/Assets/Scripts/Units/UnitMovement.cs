@@ -63,13 +63,21 @@ public class UnitMovement : NetworkBehaviour
     }
 
     [Command]
+    //Calling Move From Client
     public void CmdMove(Vector3 position)
+    {
+        //Move Method Run On Server
+        ServerMove(position);
+    }
+
+    [Server]
+    public void ServerMove(Vector3 position)
     {
         //Clear Target If It Has.
         targeter.ClearTarget();
 
         //Validation For Move
-        if(!NavMesh.SamplePosition(position, out NavMeshHit hit, 1f, NavMesh.AllAreas)){ return; }
+        if (!NavMesh.SamplePosition(position, out NavMeshHit hit, 1f, NavMesh.AllAreas)) { return; }
 
         //Move to hit Pos
         agent.SetDestination(hit.position);
