@@ -16,8 +16,15 @@ public class RTSPlayer : NetworkBehaviour
 
     public event Action<int> ClientOnResourcesUpdated;
 
+    private Color teamColor = new Color();
     private List<Unit> myUnits = new List<Unit>();
     private List<Building> myBuildings = new List<Building>();
+
+    //To Reach Team Color From Another Script
+    public Color GetTeamColor()
+    {
+        return teamColor;
+    }
 
     //To Reach Unit List From Another Script
     public List<Unit> GetMyUnits()
@@ -35,13 +42,6 @@ public class RTSPlayer : NetworkBehaviour
     public int GetMyResources()
     {
         return resources;
-    }
-
-    [Server]
-    //Setting Resources
-    public void SetResources(int newResources)
-    {
-        resources = newResources;
     }
 
     //Checking While Placing Building Are Buildings Overlapping And Is Building In Range
@@ -87,6 +87,20 @@ public class RTSPlayer : NetworkBehaviour
 
         Building.ServerOnBuildingSpawned -= ServerHandleBuildingSpawned;
         Building.ServerOnBuildingDeSpawned -= ServerHandleBuildingDeSpawned;
+    }
+
+    [Server]
+    //Setting Team Colors
+    public void SetTeamColor(Color newTeamColor)
+    {
+        teamColor = newTeamColor;
+    }
+
+    [Server]
+    //Setting Resources
+    public void SetResources(int newResources)
+    {
+        resources = newResources;
     }
 
     private void ServerHandleUnitSpawned(Unit unit)
@@ -180,7 +194,7 @@ public class RTSPlayer : NetworkBehaviour
         Unit.AuthorityOnUnitDeSpawned += AuthorityHandleUnitDeSpawned;
 
         Building.AuthorityOnBuildingSpawned += AuthorityHandleBuildingSpawned;
-        Building.AuthorityOnBuildingSpawned += AuthorityHandleBuildingDeSpawned;
+        Building.AuthorityOnBuildingDeSpawned += AuthorityHandleBuildingDeSpawned;
     }
 
     public override void OnStopClient()
@@ -193,7 +207,7 @@ public class RTSPlayer : NetworkBehaviour
         Unit.AuthorityOnUnitDeSpawned -= AuthorityHandleUnitDeSpawned;
 
         Building.AuthorityOnBuildingSpawned -= AuthorityHandleBuildingSpawned;
-        Building.AuthorityOnBuildingSpawned -= AuthorityHandleBuildingDeSpawned;
+        Building.AuthorityOnBuildingDeSpawned -= AuthorityHandleBuildingDeSpawned;
     }
 
     //Whenever Resources Change, Server Updates Resorces And Change It To The Client Side With Hook

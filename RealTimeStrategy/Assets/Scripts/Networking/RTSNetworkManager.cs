@@ -12,7 +12,12 @@ public class RTSNetworkManager : NetworkManager
     {
         base.OnServerAddPlayer(conn);
 
-        //When We Joined Server Instantiate SpawnerButton Belongs To Us.
+        //Reach Player
+        RTSPlayer player = conn.identity.GetComponent<RTSPlayer>();
+        //Set Player Color
+        player.SetTeamColor(Random.ColorHSV());
+
+        //When We Joined Server Instantiate UnitBase Belongs To Us.
         GameObject unitSpawnerInstance =  Instantiate(unitSpawnerPrefab, conn.identity.transform.position, conn.identity.transform.rotation);
 
         //Spawn On The Network and Conn means as The Same connectionToClient = Give this SpawnerPoint To The Belongs Client
