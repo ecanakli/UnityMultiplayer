@@ -28,17 +28,15 @@ public class BuildingButton : MonoBehaviour, IPointerDownHandler, IPointerUpHand
 
         iconImage.sprite = building.GetIcon();
         priceText.text = building.GetPrice().ToString();
+
+        //Get our connection, get the player object for our connection and on the player object get the RTSPlayer script
+        player = NetworkClient.connection.identity.GetComponent<RTSPlayer>();
+
         buildingCollider = building.GetComponent<BoxCollider>();
     }
 
     private void Update()
     {
-        if (player == null)
-        {
-            //Get our connection, get the player object for our connection and on the player object get the RTSPlayer script
-            player = NetworkClient.connection.identity.GetComponent<RTSPlayer>();
-        }
-
         if(buildingPreviewInstance == null) { return; }
 
         UpdateBuildingPreview();

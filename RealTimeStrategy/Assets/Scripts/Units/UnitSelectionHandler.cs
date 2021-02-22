@@ -24,6 +24,10 @@ public class UnitSelectionHandler : MonoBehaviour
     private void Start()
     {
         mainCamera = Camera.main;
+
+        //Get our connection, get the player object for our connection and on the player object get the RTSPlayer script
+        player = NetworkClient.connection.identity.GetComponent<RTSPlayer>();
+
         //Subscribe
         Unit.AuthorityOnUnitDeSpawned += AuthorityHandleUnitDeSpawned;
         //For Disable This Script When We Die
@@ -40,12 +44,6 @@ public class UnitSelectionHandler : MonoBehaviour
 
     private void Update()
     {
-        if (player == null)
-        {
-            //Get our connection, get the player object for our connection and on the player object get the RTSPlayer script
-            player = NetworkClient.connection.identity.GetComponent<RTSPlayer>();
-        }
-
         //To Selecting Units
         MouseDragging();
     }

@@ -1,4 +1,5 @@
 using Mirror;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -6,22 +7,65 @@ using UnityEngine.SceneManagement;
 
 public class RTSNetworkManager : NetworkManager
 {
-    [SerializeField] private GameObject unitSpawnerPrefab = null;
+    [SerializeField] private GameObject unitBasePrefab = null;
     [SerializeField] private GameOverHandler gameOverHandlerPrefab = null;
+
+    public static event Action ClientOnConnected;
+    public static event Action ClientOnDisconnected;
+
+    private bool isGameInProgress = false;
+
+    public List<RTSPlayer> Players { get; } = new List<RTSPlayer>();
+
+    #region Server
+
+    public override void OnServerConnect(NetworkConnection conn)
+    {
+        if (!isGameInProgress) { return; }
+
+        conn.Disconnect();
+    }
+
+    public override void OnServerDisconnect(NetworkConnection conn)
+    {
+        RTSPlayer player = conn.identity.GetComponent<RTSPlayer>();
+
+        Players.Remove(player);
+
+        base.OnServerDisconnect(conn);
+    }
+
+    public override void OnStopServer()
+    {
+        Players.Clear();
+
+        isGameInProgress = false;
+    }
+
+    public void StartGame()
+    {
+        if(Players.Count < 2) { return; }
+
+        isGameInProgress = true;
+
+        ServerChangeScene("Level1");
+    }
+
     public override void OnServerAddPlayer(NetworkConnection conn)
     {
         base.OnServerAddPlayer(conn);
 
         //Reach Player
         RTSPlayer player = conn.identity.GetComponent<RTSPlayer>();
+
+        Players.Add(player);
+
+        player.SetDisplayName($"Player {Players.Count}");
+
         //Set Player Color
-        player.SetTeamColor(Random.ColorHSV());
+        player.SetTeamColor(UnityEngine.Random.ColorHSV());
 
-        //When We Joined Server Instantiate UnitBase Belongs To Us.
-        GameObject unitSpawnerInstance =  Instantiate(unitSpawnerPrefab, conn.identity.transform.position, conn.identity.transform.rotation);
-
-        //Spawn On The Network and Conn means as The Same connectionToClient = Give this SpawnerPoint To The Belongs Client
-        NetworkServer.Spawn(unitSpawnerInstance, conn);
+        player.SetPartyOwner(Players.Count == 1);
     }
 
     //Spawn Game Over Handler Only If We Are In Level Not Menu Scene
@@ -32,6 +76,38 @@ public class RTSNetworkManager : NetworkManager
             GameOverHandler gameOverHandlerInstance = Instantiate(gameOverHandlerPrefab);
 
             NetworkServer.Spawn(gameOverHandlerInstance.gameObject);
+
+            foreach (RTSPlayer player in Players)
+            {
+                GameObject baseInstance = Instantiate(unitBasePrefab, GetStartPosition().position, Quaternion.identity);
+
+                NetworkServer.Spawn(baseInstance, player.connectionToClient);
+            }
         }
     }
+
+    #endregion
+
+    #region Client
+
+    public override void OnClientConnect(NetworkConnection conn)
+    {
+        base.OnClientConnect(conn);
+
+        ClientOnConnected?.Invoke();
+    }
+
+    public override void OnClientDisconnect(NetworkConnection conn)
+    {
+        base.OnClientDisconnect(conn);
+
+        ClientOnDisconnected?.Invoke();
+    }
+
+    public override void OnStopClient()
+    {
+        Players.Clear();
+    }
+
+    #endregion
 }

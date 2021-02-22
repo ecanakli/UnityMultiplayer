@@ -258,7 +258,7 @@ MonoBehaviour:
   targeter: {fileID: 7434830191279602693}
   projectilePrefab: {fileID: 1934909350347963981, guid: 5fd7da39ec408714b83f4dad969fe68d, type: 3}
   projectileSpawnPoint: {fileID: 6889207807775805652}
-  fireRange: 11
+  fireRange: 15
   fireRate: 1
   rotationSpeed: 200
 --- !u!114 &4990760062699015312
